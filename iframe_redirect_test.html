@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>網站嵌入與 PDF 回跳測試</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Noto Sans TC',sans-serif;color-scheme:light dark}body{max-width:800px;margin:24px auto;padding:0 16px;line-height:1.55}h1{font-size:1.45rem}label{font-weight:650;display:block;margin-top:14px}input,button{font:inherit;box-sizing:border-box}input{width:100%;padding:12px;border:1px solid #8887;border-radius:8px;margin-top:5px}button{margin-top:16px;padding:12px 18px;border:0;border-radius:8px;background:#2267c9;color:white;cursor:pointer}button.secondary{background:#555}button:disabled{opacity:.5}#frame{width:100%;height:380px;border:1px solid #8887;border-radius:8px;background:white;margin-top:12px}.note{font-size:.9rem;color:gray}#status{padding:10px 12px;background:rgba(127,127,127,.12);border-radius:8px;margin-top:14px;white-space:pre-wrap} .actions{display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<h1>網站嵌入與 PDF 回跳測試</h1>
+<p>這是<strong>可見 iframe</strong> 的功能測試。按下開始後會在下方載入測試網站，經過指定時間，同一分頁前往 PDF。請只測試你有權使用的網站。</p>
+<label for="siteB">測試網站 B（HTTPS）</label><input id="siteB" type="url" value="https://example.com" spellcheck="false">
+<label for="siteC">最終 PDF 網址 C（HTTPS）</label><input id="siteC" type="url" placeholder="https://你的帳號.github.io/notes/example.pdf" spellcheck="false">
+<label for="seconds">等待秒數（0–120）</label><input id="seconds" type="number" min="0" max="120" step="0.5" value="10">
+<div class="actions"><button id="start" type="button">開始測試</button><button id="cancel" type="button" class="secondary" disabled>取消測試</button></div>
+<div id="status" role="status" aria-live="polite">尚未開始。先填入 PDF 網址。</div>
+<iframe id="frame" title="網站 B 嵌入測試" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<p class="note">若 B 顯示拒絕連線或空白，可能是它禁止 iframe。此頁無法判斷第三方分析工具是否記錄訪問，也不會在背景隱藏載入網站。</p>
+<script>
+(function(){
+  'use strict';
+  var start=document.getElementById('start'),cancel=document.getElementById('cancel');
+  var frame=document.getElementById('frame'),status=document.getElementById('status');
+  var timer=null;
+  function reset(){if(timer!==null){clearTimeout(timer);timer=null;}start.disabled=false;cancel.disabled=true;}
+  start.addEventListener('click',function(){
+    reset();
+    try{
+      var b=new URL(document.getElementById('siteB').value.trim());
+      var c=new URL(document.getElementById('siteC').value.trim());
+      var s=Number(document.getElementById('seconds').value);
+      if(b.protocol!=='https:'||c.protocol!=='https:')throw Error('兩個網址都必須使用 HTTPS。');
+      if(!Number.isFinite(s)||s<0||s>120)throw Error('等待秒數請設定為 0 到 120。');
+      frame.src=b.href;
+      start.disabled=true;cancel.disabled=false;
+      status.textContent='已開始嵌入網站 B。'+s+' 秒後將前往 PDF。';
+      timer=setTimeout(function(){timer=null;window.location.replace(c.href);},s*1000);
+    }catch(e){status.textContent='設定錯誤：'+e.message;}
+  });
+  cancel.addEventListener('click',function(){reset();frame.removeAttribute('src');status.textContent='已取消測試。';});
+})();
+</script>
+</body></html>
