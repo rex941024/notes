@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>雙分頁開啟工具</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color-scheme:light dark}body{max-width:680px;margin:36px auto;padding:0 18px;line-height:1.6}label{display:block;margin-top:14px;font-weight:650}input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #999;border-radius:9px;font:inherit}button{margin-top:20px;padding:12px 18px;font:inherit;cursor:pointer;border:0;border-radius:9px;background:#1769d2;color:white}#status{min-height:1.5em}small{color:gray} .note{padding:12px;border:1px solid #8885;border-radius:9px;margin-top:18px}</style>
+</head>
+<body>
+<h1>雙分頁開啟工具</h1>
+<p>按下按鈕後，會嘗試在<strong>新分頁開啟網站 B</strong>，並在<strong>目前分頁前往 PDF 網站 C</strong>。沒有倒數功能。</p>
+<label for="b">網站 B（將在新分頁開啟）</label>
+<input id="b" type="url" inputmode="url" placeholder="https://example.com" autocomplete="url">
+<label for="c">網站 C（原分頁前往的 PDF）</label>
+<input id="c" type="url" inputmode="url" placeholder="https://example.org/notes.pdf" autocomplete="url">
+<div class="note">請先確認兩個網址均為預期目的地。點擊下方按鈕表示你選擇開啟兩個網站；如果 B 是合作或分潤連結，請清楚向訪客揭露。</div>
+<button id="go" type="button">開啟 B 並前往 C</button>
+<p id="status" role="status" aria-live="polite"></p>
+<small>注意：瀏覽器可能阻擋新分頁。此工具不會設定第三方 Cookie，也不能保證 B 的訪問被計為有效聯盟點擊。</small>
+<script>
+const $ = id => document.getElementById(id);
+function httpsUrl(value) {try { const url = new URL(value.trim()); return url.protocol === 'https:' ? url.href : null; } catch { return null; }}
+$('go').addEventListener('click', () => {
+  const b = httpsUrl($('b').value), c = httpsUrl($('c').value);
+  if (!b || !c) { $('status').textContent = '請填入兩個有效的 HTTPS 網址。'; return; }
+  const tab = window.open(b, '_blank');
+  if (!tab) { $('status').textContent = '瀏覽器阻擋了新分頁。請允許此網站開啟分頁，然後再試一次。'; return; }
+  // Keep the original page navigable; do not attempt to inspect or control the third-party site.
+  window.location.assign(c);
+});
+</script>
+</body></html>
