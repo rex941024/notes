@@ -68,7 +68,9 @@ a{overflow-wrap:anywhere}
       const b=safe($('b').value.trim()),c=safe($('c').value.trim());
       if(!b||!c){$('error').textContent='請填入兩條有效的 http(s) 網址。';return;}
       $('error').textContent='';
-      const u=new URL(location.href);u.search='';u.hash='';
+     const u = new URL(
+  "https://rex941024.github.io/notes/notes_two_buttons.html"
+);
       u.searchParams.set('mode','go');u.searchParams.set('b',b.href);u.searchParams.set('c',c.href);
       $('out').href=u.href;$('out').textContent=u.href;$('linkarea').hidden=false;
     });
