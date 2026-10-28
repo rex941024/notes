@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雙目的地單次點擊工具</title>
+<style>
+:root{font-family:system-ui,-apple-system,'Noto Sans TC',sans-serif;color-scheme:light dark}body{max-width:670px;margin:48px auto;padding:0 20px;line-height:1.6}label{display:block;font-weight:650;margin-top:18px}input{box-sizing:border-box;width:100%;padding:12px;border:1px solid #9ba4ae;border-radius:8px;font-size:16px}button{cursor:pointer;padding:12px 18px;border:0;border-radius:8px;font-size:16px;background:#1e60c9;color:white;margin-top:20px}button:disabled{opacity:.5}small,.muted{color:#737d89}#error{color:#b3261e;font-weight:650}#linkarea{overflow-wrap:anywhere;margin-top:16px;padding:12px;background:rgba(127,127,127,.1);border-radius:8px}hr{margin:32px 0;border:0;border-top:1px solid #aaa}a{overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<section id="setup">
+<h1>單次點擊雙網址工具</h1>
+<p>設定網站 B 和 PDF 網址 C，產生一條分享連結 A。訪客進入 A 後，按一下清楚標示的按鈕：嘗試在新分頁開啟 B，同時讓原分頁進入 C。</p>
+<label for="b">網站 B（新分頁）</label><input id="b" type="url" placeholder="https://example.com" autocomplete="off">
+<label for="c">網站 C（PDF／最終頁面）</label><input id="c" type="url" placeholder="https://rex941024.github.io/notes/xxx.pdf" autocomplete="off">
+<button id="create">產生分享連結 A</button>
+<p id="error" role="alert"></p><div id="linkarea" hidden><strong>分享連結 A</strong><p><a id="out" target="_blank" rel="noopener noreferrer"></a></p><button id="copy" type="button">複製連結</button></div>
+<p class="muted"><small>公開分享時，請先將此 HTML 放到 GitHub Pages。直接以本機檔案開啟只能進行本機測試。部分瀏覽器會封鎖新分頁。</small></p>
+</section>
+<section id="visitor" hidden>
+<h1>前往筆記</h1>
+<p>按下方按鈕，會同時嘗試<strong>在新分頁開啟合作／參考網站 B</strong>，並在<strong>原分頁前往筆記 C</strong>。</p>
+<p>網站 B：<a id="bshow" target="_blank" rel="noopener noreferrer"></a></p>
+<p>筆記 C：<a id="cshow"></a></p>
+<button id="go">開啟 B 並前往 C</button>
+<p id="status" role="status"></p>
+<p><small>如果新分頁被阻擋，可以直接使用上方網站 B 連結。你也可以直接點擊筆記 C，不開啟 B。</small></p>
+</section>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  function safe(s){try{const u=new URL(s);return ['http:','https:'].includes(u.protocol)?u:null}catch{return null}}
+  const query=new URLSearchParams(location.search);
+  if(query.get('mode')==='go'){
+    $('setup').hidden=true;$('visitor').hidden=false;
+    const b=safe(query.get('b')),c=safe(query.get('c'));
+    if(!b||!c){$('status').textContent='網址參數無效，請重新產生分享連結。';$('go').disabled=true;return;}
+    $('bshow').href=b.href;$('bshow').textContent=b.hostname;
+    $('cshow').href=c.href;$('cshow').textContent=c.href;
+    $('go').addEventListener('click',()=>{
+      // Browser permits pop-ups only if directly triggered by a user's click.
+      const w=window.open(b.href,'_blank','noopener,noreferrer');
+      if(!w){$('status').textContent='新分頁可能受到瀏覽器阻擋；仍可點選上方網站 B 連結。';}
+      location.assign(c.href);
+    });
+  } else {
+    $('create').addEventListener('click',()=>{
+      const b=safe($('b').value.trim()),c=safe($('c').value.trim());
+      if(!b||!c){$('error').textContent='請填入兩條有效的 http(s) 網址。';return;}
+      $('error').textContent='';
+      const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('mode','go');u.searchParams.set('b',b.href);u.searchParams.set('c',c.href);
+      $('out').href=u.href;$('out').textContent=u.href;$('linkarea').hidden=false;
+    });
+    $('copy').addEventListener('click',async()=>{
+      const value=$('out').href;
+      try{await navigator.clipboard.writeText(value);$('copy').textContent='已複製';}
+      catch{window.prompt('複製以下連結',value);}
+    });
+  }
+})();
+</script>
+</body></html>
